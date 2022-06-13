@@ -2,9 +2,9 @@
 
 Plugin for [Jekyll][jekyll] to generate a report which shows the **internal links** on every post and page on your Jekyll website.
 
-It runs after Jekyll generates the HTML, and counts any links where the `href` starts with `/`.
+It runs after Jekyll generates the HTML, and finds any links where the `href` starts with `/`.
 
-It runs on every `jekyll build`, and writes a link report to the console.
+It runs on every `jekyll build`, and writes a link report a CSV file.
 
 ## What is this for?
 
@@ -34,9 +34,20 @@ gem 'jekyll-link-report', '0.1.0', :path => '/path/to/where/you/cloned/jekyll-li
 
 **3.** Build your site as normal (`jekyll build`), and a rough report will be written to the console.
 
+## Example output
+
+The plugin will generate a file inside your _site_ folder called links.csv, which looks like this:
+
+```
+/why-eat-eggs/,Why Eat Eggs?,[/what-are-eggs/,/scrambled-egg-recipe/]
+/egg-calendar/,Egg Calendar,[/what-are-eggs/,/fried-egg-recipe/]
+/tuna-melt-recipe/,The Best Tuna Melt Recipe,[]
+/tuna-recipes/,Tuna Recipes,[/tuna-melt-recipe/]
+```
+
 ## Future improvements
 
-- Creating a CSV
+- Improving the format (currently a very basic CSV)
 
 - Turning into a Ruby Gem and releasing properly
 

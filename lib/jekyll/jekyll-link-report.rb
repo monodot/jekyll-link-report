@@ -1,63 +1,45 @@
-# require "jekyll"
-# require "jekyll-link-report/version"
 require "nokogiri"
+require "json"
 
 module Jekyll
-  module LinkReport
-    DEFAULT_MESSAGE = "henlo"
+  class JekyllLinkReport < Jekyll::Generator
+    # DEFAULT_MESSAGE = "henlo"
 
-    class << self
-      def doc_link_report(doc)
-        Jekyll.logger.info "**********************************"
-        # Jekyll.logger.info doc
-        data = doc.data
-        # Jekyll.logger.info data
-        # Jekyll.logger.info data["relative_path_from_git_dir"]
-        Jekyll.logger.info data["title"]
-        Jekyll.logger.info doc.url
-
-        html = Nokogiri::HTML(doc.content)
-
-        # Extract all links from the DOM and crudely select only URLs beginning with '/'
-        links = html.xpath('//a/@href').map { |attr| attr.value }.select{ |attr| attr[/^\//] }
-
-        Jekyll.logger.info links
-        Jekyll.logger.info links.count
-
-        # require 'irb'
-        # binding.irb
-      end
-
-      def site_link_report(site, payload)
-        # Jekyll::Site
-        # Jekyll.logger.info site.pages
-        # Jekyll::Drops::UnifiedPayloadDrop
-        # Jekyll.logger.info payload
-        # Jekyll.logger.info payload.site  # just seems to return Pages, not posts
-
-        Jekyll.logger.info payload.site.posts 
-
-        # Each element is a Jekyll::Document
-        payload.site.posts.each do |post|
-          Jekyll.logger.info "#{post.url},#{post.data["title"]}" # post.url
-          # Jekyll.logger.info post.data["title"]
-
-          # TODO load the post and count the number of links.
-        end
-
-        # require 'irb'
-        # binding.irb
-      end
+    def generate(site)
+      @site = site
+      @site.pages << linkreport unless file_exists?("links.csv")
     end
+
+    # Matches all whitespace that follows
+    #   1. A '>' followed by a newline or
+    #   2. A '}' which closes a Liquid tag
+    # We will strip all of this whitespace to minify the template
+    MINIFY_REGEX = %r!(?<=>\n|})\s+!.freeze
+
+    # Path to sitemap.xml template file
+    def source_path(file = "links.csv")
+      File.expand_path "../#{file}", __dir__
+    end
+
+    # Basically generate a new page, with a layout, content, etc.
+    def linkreport
+      link_report = PageWithoutAFile.new(@site, __dir__, "", "links.csv")
+      link_report.content = File.read(source_path).gsub(MINIFY_REGEX, "")
+      link_report.data["layout"] = nil
+      # link_report.content = JSON.generate({:hello => "goodbye"})
+      link_report
+    end
+
+    # Checks if a file already exists in the site source
+    def file_exists?(file_path)
+      pages_and_files.any? { |p| p.url == "/#{file_path}" }
+    end
+
+    def pages_and_files
+      @pages_and_files ||= @site.pages + @site.static_files
+    end
+
+
   end
 end
 
-# Jekyll::Hooks.register :site, :post_render do |site, payload|
-#   Jekyll::LinkReport.site_link_report(site, payload)
-# end
-
-Jekyll::Hooks.register :documents, :post_render do |doc|
-  Jekyll::LinkReport.doc_link_report(doc)
-end
-
-# require "jekyll/commands/report.rb"

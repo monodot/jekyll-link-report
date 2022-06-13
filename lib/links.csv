@@ -1,0 +1,7 @@
+{% assign collections = site.collections | where_exp:'collection','collection.output != false' %}
+{% for collection in collections %}
+  {% assign docs = collection.docs | where_exp:'doc','doc.sitemap != false' %}
+  {% for doc in docs %}
+    {{ doc.url }},{{ doc.title }},[{{ doc.links | join: ',' }}]
+  {% endfor %}
+{% endfor %}
